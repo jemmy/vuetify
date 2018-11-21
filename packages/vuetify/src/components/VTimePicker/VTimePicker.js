@@ -41,6 +41,8 @@ export default {
     return {
       inputHour: null,
       inputMinute: null,
+      lazyInputHour: null,
+      lazyInputMinute: null,
       period: 'am',
       selectingHour: true
     }
@@ -109,10 +111,7 @@ export default {
       if (value == null || value === '') {
         this.inputHour = null
         this.inputMinute = null
-        return
-      }
-
-      if (value instanceof Date) {
+      } else if (value instanceof Date) {
         this.inputHour = value.getHours()
         this.inputMinute = value.getMinutes()
       } else {
@@ -122,7 +121,7 @@ export default {
         this.inputMinute = parseInt(minute, 10)
       }
 
-      this.period = this.inputHour < 12 ? 'am' : 'pm'
+      this.period = (this.inputHour == null || this.inputHour < 12) ? 'am' : 'pm'
     },
     convert24to12 (hour) {
       return hour ? ((hour - 1) % 12 + 1) : 12
@@ -139,10 +138,14 @@ export default {
       this.emitValue()
     },
     onChange () {
-      if (!this.selectingHour) {
-        this.$emit('change', this.value)
-      } else {
-        this.selectingHour = false
+      this.selectingHour = false
+
+      if (this.inputHour !== this.lazyInputHour || this.inputMinute !== this.lazyInputMinute) {
+        if (this.inputHour != null && this.inputMinute != null) {
+          this.lazyInputHour = this.inputHour
+          this.lazyInputMinute = this.inputMinute
+          this.$emit('change', `${pad(this.inputHour)}:${pad(this.inputMinute)}`)
+        }
       }
     },
     firstAllowed (type, value) {
